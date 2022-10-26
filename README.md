@@ -1,0 +1,2 @@
+TBD
+# T47LicenseManager
