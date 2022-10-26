@@ -22,6 +22,10 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 
+
+
+
+
 T47LicenseManager is a license manager service for Java (and expecially JAva over Spring Boot) projects.
 
 T47LicenseManager is designed to manage
