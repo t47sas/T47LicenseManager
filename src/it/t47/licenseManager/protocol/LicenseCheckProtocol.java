@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2022 Tancredi Canonico
+ * 
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * 
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package it.t47.licenseManager.protocol;
 
 import java.io.BufferedReader;
@@ -32,6 +57,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.t47.utils.MachineID;
 
+/*
+ * Protocol Manager
+ * 
+ * designed to be used both by licensed software (client) and license server
+ */
+
 public class LicenseCheckProtocol
 {
 	public static final String CLASS_DECRYPTION_KEY = "__class_decryption_key";
@@ -51,6 +82,17 @@ public class LicenseCheckProtocol
 		}
 	}
 
+	/*
+	 * License server method
+	 * Parameters:
+	 * 		"request" value as passed by licensed software (licensed software passes a JSON object as {'request': 'XXX' }, only XXX should be passed to the method)
+	 * 		license server RSA private key, Base64 encoded
+	 * 		a LicenseChecker object, used by the method to check license parameteres
+	 * 		custom values (if any) to be passed to the LicenseChecker
+	 * 
+	 * 		returned string should be transmitted back to the licensed software after inserting it in a JSON object
+	 * 		as {data: <returned string, if valid>, error: <error, if any>}: if no error has been catched, null value should be passed as error
+	 */
 	public static String manageRequest (String request, String privateKeyBase64, LicenseChecker checker, Object... customData) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, JsonMappingException, JsonProcessingException, InvalidKeySpecException
 	{
 		byte [] prv = Base64.getDecoder ().decode (privateKeyBase64);
@@ -82,7 +124,18 @@ public class LicenseCheckProtocol
 		else
 			return null;
 	}
-	
+
+	/*
+	 * Licenses software method
+	 * Parameters:
+	 * 		URL of the license manager that with manage the license verification (a POST call will be performed)
+	 * 		License UUID
+	 * 		License server public key
+	 * 		classes to be checked for alteration
+	 * 
+	 * 		returns a LicenseParams object containing custom license params (if any: i.e. expiration) and the encoded classes decryption key
+	 * 		(to be used with provided EncryptedClassLoaders)
+	 */	
 	public static LicenseParams checkLicense (String url, String UUID, String publicKeyBase64, Class <?> [] classes) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
 	{
 		List <Class <?>> checkPool = new ArrayList <Class <?>> ();

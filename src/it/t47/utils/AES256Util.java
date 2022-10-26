@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2022 Tancredi Canonico
+ * 
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * 
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package it.t47.utils;
 
 import javax.crypto.Cipher;
@@ -8,6 +33,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Base64;
 
+/*
+ * AES256 utils
+ * used to encrypt/decrypt classes files
+ * 
+ * AES256 keys should be generate externally and passed encoded in base64 format
+ */
+
 public class AES256Util
 {
 	private static Cipher encrypter, decrypter;
@@ -17,7 +49,7 @@ public class AES256Util
 		encrypter = null;
 		decrypter = null;
 	}
-	
+
 	public static byte [] decrypt (byte [] data, String base64Key)
 	{
 		if (data == null || data.length == 0)
@@ -63,6 +95,23 @@ public class AES256Util
 		}
 		return null;
 	}
+	
+	/*
+	 * utility method: performs encription or decription of the given file using the given class
+	 * the first parameter (e/d) defines the operation to be performed
+	 * output file name must be provided as last parameter
+	 * 
+	 * parameters summary:
+	 * 		- operation ('e'/'d' for encrypting/decrypting))
+	 * 		- AES256 key in base64 encoded format
+	 * 		- input file name (to be encrypted / decrypted according with 1st param)
+	 * 		- output file name
+	 * 
+	 * in order to be recognized by the EncryptedClassLoader classes, encrypted class files should
+	 * have ".encrypt" extension instead of ".class" one
+	 * and be located in the same location of the plain ".class" file
+	 * Of course the ".class" file should be removed from the distribution
+	 */
 	
 	public static void main (String [] args)
 	{
