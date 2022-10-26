@@ -64,7 +64,7 @@ call it.t47.licenseManager.protocol.LicenseCheckProtocol.checkLicense static met
 	- decryption key for encrypted class files
 	or null if the license verification fails
 
-use the proper encrypted ClassLoader (SpringEncryptedClassLoader or JDKEncryptedClassLoader) to decrypt and load encrypted class files (see below for encryption utility class)
+use the proper encrypted ClassLoader (SpringEncryptedClassLoader or JDKEncryptedClassLoader) to decrypt and load encrypted class files (see below for encryption utility class).
 
 - License manager:
 call it.t47.licenseManager.protocol.LicenseCheckProtocol.manageRequest static method passing
@@ -78,11 +78,15 @@ call it.t47.licenseManager.protocol.LicenseCheckProtocol.manageRequest static me
 	
 - Class files encryption:
 
-Create an AES256 key and encode it in Base64 format
+Create an AES256 key and encode it in Base64 format.
+
 Use it.t47.utils.AES256Util class to ancrypt/decrypt classes.
 
-call the class from command line with the following command line parameters
+Call the class from command line with the following command line parameters
 	command ('e' to encrypt, 'd' to decrypt)
 	AES254 key in base64 encoding
 	file to encrypt / decrypt (according with 'command' parameter)
 	destination file
+
+In order to be recognized by the Encrypted Class loaders provided, encrypted classes should have ".encrypt" extension instead of ".class" one and be located in the same position of plain ".class" file.
+Of course original plain class files should be removed from the distribution.
