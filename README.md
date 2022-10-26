@@ -73,7 +73,7 @@ call it.t47.licenseManager.protocol.LicenseCheckProtocol.manageRequest static me
 	- a LicenseChecker object (see it.t47.licenseManager.protocol.LicenseChecker interface): this object will receive UUID, machineID and classes bytecode ID - other than some custom other params) and will retunr a LicenseParam object with custom license parameters (if any, for example expiration date) or null if the license cannot be verified
 	- custom params to be passed to the LicenseChecker object
 	
-	returns an encoded string to be passed to the calling server in an json object built as 
+	- returns an encoded string to be passed to the calling server in an json object built as 
 	{ data: <encoded string>, error: <error - if any - or null otherwise> }
 	
 - Class files encryption:
@@ -83,10 +83,10 @@ Create an AES256 key and encode it in Base64 format.
 Use it.t47.utils.AES256Util class to ancrypt/decrypt classes.
 
 Call the class from command line with the following command line parameters
-	command ('e' to encrypt, 'd' to decrypt)
-	AES254 key in base64 encoding
-	file to encrypt / decrypt (according with 'command' parameter)
-	destination file
+	- command ('e' to encrypt, 'd' to decrypt)
+	- AES254 key in base64 encoding
+	- file to encrypt / decrypt (according with 'command' parameter)
+	- destination file
 
 In order to be recognized by the Encrypted Class loaders provided, encrypted classes should have ".encrypt" extension instead of ".class" one and be located in the same position of plain ".class" file.
 Of course original plain class files should be removed from the distribution.
