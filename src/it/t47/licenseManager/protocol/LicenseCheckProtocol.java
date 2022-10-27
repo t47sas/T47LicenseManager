@@ -57,9 +57,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.t47.utils.MachineID;
 
-/*
+/**
  * Protocol Manager
- * 
+ * Reference protocol implementation
  * designed to be used both by licensed software (client) and license server
  */
 
@@ -82,16 +82,14 @@ public class LicenseCheckProtocol
 		}
 	}
 
-	/*
-	 * License server method
-	 * Parameters:
-	 * 		"request" value as passed by licensed software (licensed software passes a JSON object as {'request': 'XXX' }, only XXX should be passed to the method)
-	 * 		license server RSA private key, Base64 encoded
-	 * 		a LicenseChecker object, used by the method to check license parameteres
-	 * 		custom values (if any) to be passed to the LicenseChecker
-	 * 
-	 * 		returned string should be transmitted back to the licensed software after inserting it in a JSON object
-	 * 		as {data: <returned string, if valid>, error: <error, if any>}: if no error has been catched, null value should be passed as error
+	/**
+	 * License Server side method
+	 *
+	 * @param request			the value passed by licensed software (licensed software passes a JSON object as {'request': 'XXX' }, only XXX should be passed to the method)
+	 * @param privateKeyBase64 	license server RSA private key, Base64 encoded
+	 * @param checker			a LicenseChecker object, used to check license parameters
+	 * @param customData		custom values (if any) to be passed to the LicenseChecker
+	 * @return the value that should be transmitted back to the licensed software after inserting it in a JSON object as {data: <returned string, if valid>, error: <error string, if any>}: if no error has been thrown, null value should be passed as error
 	 */
 	public static String manageRequest (String request, String privateKeyBase64, LicenseChecker checker, Object... customData) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, JsonMappingException, JsonProcessingException, InvalidKeySpecException
 	{
@@ -125,16 +123,14 @@ public class LicenseCheckProtocol
 			return null;
 	}
 
-	/*
-	 * Licenses software method
-	 * Parameters:
-	 * 		URL of the license manager that with manage the license verification (a POST call will be performed)
-	 * 		License UUID
-	 * 		License server public key
-	 * 		classes to be checked for alteration
+	/**
+	 * Licenses software side method
 	 * 
-	 * 		returns a LicenseParams object containing custom license params (if any: i.e. expiration) and the encoded classes decryption key
-	 * 		(to be used with provided EncryptedClassLoaders)
+	 * @param url					URL of the license manager that with manage the license verification (a POST call will be performed)
+	 * @param UUID					License UUID
+	 * @param publicKeyBase64		License server public key, base64 encoded
+	 * @param classes				classes to be checked for alteration
+	 * @return a LicenseParams object containing custom license params (if any: i.e. expiration) and the encoded classes decryption key (to be used with provided EncryptedClassLoaders)
 	 */	
 	public static LicenseParams checkLicense (String url, String UUID, String publicKeyBase64, Class <?> [] classes) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
 	{
@@ -143,7 +139,7 @@ public class LicenseCheckProtocol
 			checkPool.add (c);
 		checkPool.add (LicenseCheckProtocol.class);
 		checkPool.add (MachineID.class);
-		String [] ids = MachineID.getID (checkPool);
+		String [] ids = MachineID.getIDs (checkPool);
 		String machineID = ids [0];
 		String codeID = ids [1];
 

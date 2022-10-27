@@ -27,12 +27,11 @@ package it.t47.licenseManager.protocol;
 
 import java.util.HashMap;
 
-/*
+/**
  * Object returned by the LicenseChecker object
  * it extends Map <String, Object> and can store custom parameters to send to the licensed system, for example expiration.
  * classDecryptionKey member is managed by the protocol manager and should not be compiled by users
  */
-
 public class LicenseParams extends HashMap <String, Object>
 {
 	private static final long serialVersionUID = 1L;

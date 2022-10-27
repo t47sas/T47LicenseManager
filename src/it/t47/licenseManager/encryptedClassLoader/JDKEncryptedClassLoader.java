@@ -27,7 +27,7 @@ package it.t47.licenseManager.encryptedClassLoader;
 
 import it.t47.utils.AES256Util;
 
-/*
+/**
  * General purpose Encrypted Class loader
  *
  * the encrypted class is assumed to have ".encrypted" extension instead of ".class" and to
@@ -35,10 +35,13 @@ import it.t47.utils.AES256Util;
  */
 public class JDKEncryptedClassLoader extends ClassLoader
 {
-	String key;
+	private String key;
 
-	/*
-	 * constructor: pass the class decryption key as returned by LicenseCheckerProtocol class (checkLicense method)
+	/**
+	 * constructor
+	 * 
+	 * @param key		encrypted class file decryption key as returned by LicenseCheckerProtocol class (checkLicense method)
+	 * @param parent	parent ClassLoader	
 	 */
 	public JDKEncryptedClassLoader (String key, ClassLoader parent)
 	{

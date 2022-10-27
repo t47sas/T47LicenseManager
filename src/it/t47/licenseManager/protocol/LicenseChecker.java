@@ -25,7 +25,7 @@
 
 package it.t47.licenseManager.protocol;
 
-/*
+/**
  * LicenseChecker interface
  * a LicenseChecker is an object that can make license params validations
  * LicenseChecker can take decisions about the license validity basing on license unique identifier,
@@ -35,11 +35,13 @@ package it.t47.licenseManager.protocol;
 
 public interface LicenseChecker
 {
-	/*
-	 * License check method
-	 * return a LicenseParams object (extends Map <String, Object>) that can be used to return custom parameters
-	 * (if any) related to the license (i.e. expiration)
-	 * return null if the given parameters do not correspond to a valide license
+	/**
+	 * checks the license params
+	 * 
+	 * @param		UUID		license UUID
+	 * @param		machineID	identifier of the system the software is running on (i.e. the one returned by MachineID utility class)
+	 * @param		codeID	identifier of the mail classes used (i.e. the one returned by MachineID utility class)
+	 * @return		LicenseParams object (extends Map <String, Object>) that can be used to return custom parameters (if any) related to the license (i.e. expiration). Should return null if the given parameters do not correspond to a valide license
 	 */
 	public LicenseParams checkLicense (String UUID, String machineID, String codeID, Object... customData);
 }

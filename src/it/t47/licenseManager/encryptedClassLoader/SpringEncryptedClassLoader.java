@@ -29,7 +29,7 @@ import org.springframework.core.DecoratingClassLoader;
 
 import it.t47.utils.AES256Util;
 
-/*
+/**
  * Encrypted Class loader to be used with Spring Boot framework
  *
  * the encrypted class is assumed to have ".encrypted" extension instead of ".class" and to
@@ -39,6 +39,12 @@ public class SpringEncryptedClassLoader extends DecoratingClassLoader
 {
 	private String key;
 
+	/**
+	 * constructor
+	 * 
+	 * @param key		encrypted class file decryption key as returned by LicenseCheckerProtocol class (checkLicense method)
+	 * @param parent	parent ClassLoader	
+	 */
 	public SpringEncryptedClassLoader (String key, ClassLoader parent)
 	{
 		super (parent);

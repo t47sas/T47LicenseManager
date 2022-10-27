@@ -37,7 +37,7 @@ import java.util.List;
 
 import javassist.ClassPool;
 
-/*
+/**
  * MachineID utils
  * used to calculate the Machine ID and MD5 hash of a given list of classes (code ID).
  * the Machine ID is calculated as the MD5 hash of the concatenation of every MAC address, sorted alphabetically
@@ -47,11 +47,13 @@ import javassist.ClassPool;
 
 public class MachineID
 {
-	/*
+	/**
 	 * this method returns an array of two string: the first is the machine ID, the second is the code ID
-	 * (refer to the prefious comment for further details)
+	 * (refer to the previous comment for further details)
+	 * @param pool		list of classes to calculate an hash on
+	 * @return	a string array containing the machine ID (cell 0) and the checked classes ID (cell 1)
 	 */
-	public static String [] getID (List <Class <?>> pool)
+	public static String [] getIDs (List <Class <?>> pool)
 	{
 		try
 		{
