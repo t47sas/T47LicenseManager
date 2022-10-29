@@ -39,16 +39,12 @@ T47LicenseManager is server-based: a T47LicenseManager protocol compatible serve
 
 Basically, protocol phases are
 
-1) the licensed server computes machine ID and bytecode ID, and send them to the licensing server along with its UUID
+1) the licensed server computes machine ID and bytecode ID and the first half of the decryption key of the encrypted classes decryption key (ECDK), and send them to the licensing server along with its UUID
 2) these data are sent to the licensing server after encrypting it with the licensing serever's public key
-3) the licensing server evaluates UUID, machine ID and bytecode ID and (eventually) sends back license properties (expiration...) and the encrypted classes decryption key. Server response is encrypted via its private key
-4) the licensed server uses the classes decryption key to decript the encrypted classes and finally can use them: if the license parameteres are not verified, no decryption key is provided and encrypted classes cannot be used.
+3) the licensing server evaluates UUID, machine ID and bytecode ID and (eventually) sends back license properties (expiration...), the second half of the decryption key of the ECDK and the so encrypted ECDK itself. Server response is encrypted via its private key
+4) the licensed server decrypts ECDK and uses it to decript the encrypted classes and finally can use them: if the license parameteres are not verified, no decryption key is provided and encrypted classes cannot be used.
 
-The project is based mainly on three classes:
-
-- it.t47.licenseManager.protocol.LicenseCheckProtocol: implement the base protocol for both licensed software & licensing server.
-- it.t47.licenseManager.encryptedClassLoader.SpringEncryptedClassLoader: ClassLoader for encrypted .class files, to be used in SpringBoot environment.
-- it.t47.licenseManager.encryptedClassLoader.JDKEncryptedClassLoader: ClassLoader for encrypted .class files, to be used in all other cases.
+The project is based mainly on it.t47.licenseManager.protocol.LicenseCheckProtocol that implement the base protocol for both licensed software & licensing server.
 
 Basic usage:
 Project classes provide services for both licensed server (the one whom license should be verified) and licensing server (the one that should verify the provided license params and decide if a license is valid or not).
@@ -60,11 +56,12 @@ call it.t47.licenseManager.protocol.LicenseCheckProtocol.checkLicense static met
 - license UUID
 - license server public key (RSA algorithm is used), Base64 encoded
 - array of classes to check for bytecode integrity (will be hashed in MD5, after including LicenseManager main classes also)
+- array of encrypted classes names the user wants to decypt
+
 the method returns a LicenseParams object containig
 - custom license parameters (if any, for example expiration...)
-- decryption key for encrypted class files or null if the license verification fails
+- a map containing the requestet classes read once decrypted
 
-use the proper encrypted ClassLoader (SpringEncryptedClassLoader or JDKEncryptedClassLoader) to decrypt and load encrypted class files (see below for encryption utility class).
 
 - License manager sever:
 
