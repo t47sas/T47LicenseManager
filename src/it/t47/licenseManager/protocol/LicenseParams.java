@@ -31,7 +31,6 @@ import java.util.Map;
 /**
  * Object returned by the LicenseChecker object
  * it extends Map <String, Object> and can store custom parameters to send to the licensed system, for example expiration.
- * classDecryptionKey member is managed by the protocol manager and should not be compiled by users
  */
 public class LicenseParams extends HashMap <String, Object>
 {
