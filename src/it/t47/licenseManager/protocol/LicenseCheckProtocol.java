@@ -36,6 +36,7 @@ import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.spec.EncodedKeySpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -50,11 +51,15 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.springframework.core.DecoratingClassLoader;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import it.t47.utils.AES256Util;
 import it.t47.utils.MachineID;
 
 /**
@@ -65,7 +70,9 @@ import it.t47.utils.MachineID;
 
 public class LicenseCheckProtocol
 {
-	public static final String CLASS_DECRYPTION_KEY = "__class_decryption_key";
+	private static final String CLASS_DECRYPTION_KEY = "__class_decryption_key";
+	private static final String SERVER_COMMON_KEY = "__server_common_key";
+	private static final String CLIENT_COMMON_KEY = "__client_common_key";
 	
 	private static ObjectMapper mapper = new ObjectMapper ();
 	private static KeyFactory keyFactory;
@@ -107,12 +114,28 @@ public class LicenseCheckProtocol
 		String machineID = (String) requestData.get ("machineID");
 		String codeID = (String) requestData.get ("codeID");
 
+		byte [] clientRandomKey = Base64.getDecoder ().decode ((String) requestData.get (CLIENT_COMMON_KEY));
+		byte [] serverRandomKey = new byte [8];
+		new SecureRandom ().nextBytes (serverRandomKey);
+		
+		byte [] fullKey = new byte [16];
+		for (int a = 0; a < fullKey.length / 2; a ++)
+		{
+			fullKey [a] = clientRandomKey [a];
+			fullKey [a + fullKey.length / 2] = serverRandomKey [a];
+		}
+		SecretKeySpec AESKey = AES256Util.createKey (fullKey);
+
 		LicenseParams licenseParams = checker.checkLicense (UUID, machineID, codeID, customData);
 		if (licenseParams != null)
 		{
+			byte [] cdc = AES256Util.encrypt (Base64.getDecoder ().decode (licenseParams.getClassDecryptionKey ()), AESKey);
+			String classDecryptionKey = Base64.getEncoder ().encodeToString (cdc);
+
 			Map <String, Object> params = new HashMap <String, Object> ();
 			params.putAll (licenseParams);
-			params.put (CLASS_DECRYPTION_KEY, licenseParams.getClassDecryptionKey ());
+			params.put (CLASS_DECRYPTION_KEY, classDecryptionKey);			
+			params.put (SERVER_COMMON_KEY, Base64.getEncoder ().encodeToString (serverRandomKey));
 			String paramsString = mapper.writeValueAsString (params);
 
 			Cipher encryptCipher = Cipher.getInstance("RSA");
@@ -124,24 +147,34 @@ public class LicenseCheckProtocol
 	}
 
 	/**
-	 * Licenses software side method
+	 * Licensed software side method
 	 * 
 	 * @param url					URL of the license manager that with manage the license verification (a POST call will be performed)
 	 * @param UUID					License UUID
 	 * @param publicKeyBase64		License server public key, base64 encoded
 	 * @param classes				classes to be checked for alteration
+	 * @param encryptedClassNames	name of encrypted classes to be loaded
 	 * @return a LicenseParams object containing custom license params (if any: i.e. expiration) and the encoded classes decryption key (to be used with provided EncryptedClassLoaders)
 	 */	
-	public static LicenseParams checkLicense (String url, String UUID, String publicKeyBase64, Class <?> [] classes) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
+	public static LicenseParams checkLicense (String url, String UUID, String publicKeyBase64, Class <?> [] classes, String [] encryptedClassNames) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException
 	{
 		List <Class <?>> checkPool = new ArrayList <Class <?>> ();
 		for (Class <?> c : classes)
 			checkPool.add (c);
 		checkPool.add (LicenseCheckProtocol.class);
 		checkPool.add (MachineID.class);
+		checkPool.add (AES256Util.class);
+		checkPool.add (LicenseCheckProtocol.class);
+		checkPool.add (LicenseParams.class);
+		checkPool.add (LicenseChecker.class);
 		String [] ids = MachineID.getIDs (checkPool);
 		String machineID = ids [0];
 		String codeID = ids [1];
+
+		boolean inSpring = LicenseParams.class.getClassLoader ().getClass ().getName ().startsWith ("org.springframework");		
+
+		byte [] randomKey = new byte [8];
+		new SecureRandom ().nextBytes (randomKey);
 
 		try
 		{
@@ -153,6 +186,7 @@ public class LicenseCheckProtocol
 			requestMap.put ("UUID", UUID);
 			requestMap.put ("machineID", machineID);
 			requestMap.put ("codeID", codeID);
+			requestMap.put (CLIENT_COMMON_KEY, Base64.getEncoder ().encodeToString (randomKey));
 			ObjectMapper om = new ObjectMapper ();
 			String payload = om.writeValueAsString (requestMap);
 
@@ -190,10 +224,86 @@ public class LicenseCheckProtocol
 
 				@SuppressWarnings ("unchecked")
 				Map <String, Object> params = om.readValue (new String (decryptCipher.doFinal (Base64.getDecoder ().decode (response))), Map.class);
+				
+				byte [] serverRandomKey = Base64.getDecoder ().decode (params.remove (SERVER_COMMON_KEY).toString ());
+				byte [] fullKey = new byte [16];
+				for (int a = 0; a < fullKey.length / 2; a ++)
+				{
+					fullKey [a] = randomKey [a];
+					fullKey [a + fullKey.length / 2] = serverRandomKey [a];
+				}
+				SecretKeySpec AESKey = AES256Util.createKey (fullKey);				
+		
+				byte [] cdc = Base64.getDecoder ().decode (params.remove (CLASS_DECRYPTION_KEY).toString ());
+				String classDecryptionKey = Base64.getEncoder ().encodeToString (AES256Util.decrypt (cdc, AESKey));
 
 				LicenseParams ret = new LicenseParams ();
 				ret.putAll (params);
-				ret.setClassDecryptionKey ((String) params.remove (CLASS_DECRYPTION_KEY));
+				
+				ClassLoader cl = new ClassLoader ()
+				{
+					@Override
+					public Class <?> findClass (String name) throws ClassNotFoundException
+					{
+						try
+						{
+							return Class.forName (name);
+						}
+						catch (ClassNotFoundException e)
+						{
+						}
+
+						String path = name.replaceAll ("\\.", "/") + ".encrypted";
+						try
+						{
+							byte [] data = LicenseParams.class.getClassLoader ().getResourceAsStream (path).readAllBytes ();
+							data = AES256Util.decrypt (data, classDecryptionKey);
+							return defineClass (name, data, 0, data.length);
+						}
+						catch (Exception e)
+						{
+							throw new ClassNotFoundException (name);
+						}
+					}
+				};
+				if (inSpring)
+					cl = new DecoratingClassLoader ()
+					{
+						@Override
+						public Class <?> findClass (String name) throws ClassNotFoundException
+						{
+							try
+							{
+								return Class.forName (name);
+							}
+							catch (ClassNotFoundException e)
+							{
+							}
+							
+							String path = name.replaceAll ("\\.", "/") + ".encrypted";
+							try
+							{
+								byte [] data = LicenseParams.class.getClassLoader ().getResourceAsStream (path).readAllBytes ();
+								data = AES256Util.decrypt (data, classDecryptionKey);
+								return defineClass (name, data, 0, data.length);
+							}
+							catch (Exception e)
+							{
+								e.printStackTrace ();
+								throw new ClassNotFoundException (name);
+							}
+						}
+					};
+
+				for (String className : encryptedClassNames) try
+				{
+					ret.getClassMap ().put (className, cl.loadClass (className));
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace ();
+				}
+				
 				return ret;
 			}
 			else

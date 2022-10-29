@@ -42,14 +42,6 @@ import java.util.Base64;
 
 public class AES256Util
 {
-	private static Cipher encrypter, decrypter;
-	
-	public static void reset ()
-	{
-		encrypter = null;
-		decrypter = null;
-	}
-
 	/**
 	 * performs AES256 decryption
 	 * @param data			data to be decrpted
@@ -58,19 +50,29 @@ public class AES256Util
 	 */
 	public static byte [] decrypt (byte [] data, String base64Key)
 	{
+		SecretKeySpec secretKey = new SecretKeySpec (Base64.getDecoder ().decode (base64Key), "AES");
+		return decrypt (data, secretKey);
+	}
+
+	/**
+	 * performs AES256 decryption
+	 * @param data			data to be decrpted
+	 * @param key			AES256 encryption key
+	 * @return decrypted data
+	 */
+	public static byte [] decrypt (byte [] data, SecretKeySpec key)
+	{
 		if (data == null || data.length == 0)
 			return data;
 		try
 		{
-			if (decrypter == null)
-			{
-			    SecretKeySpec secretKey = new SecretKeySpec (Base64.getDecoder ().decode (base64Key), "AES");
-				byte [] iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-				IvParameterSpec ivspec = new IvParameterSpec (iv);
 
-				decrypter = Cipher.getInstance ("AES/CBC/PKCS5PADDING");
-				decrypter.init (Cipher.DECRYPT_MODE, secretKey, ivspec);
-			}
+			byte [] iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+			IvParameterSpec ivspec = new IvParameterSpec (iv);
+
+			Cipher decrypter = Cipher.getInstance ("AES/CBC/PKCS5PADDING");
+			decrypter.init (Cipher.DECRYPT_MODE, key, ivspec);
+
 			return decrypter.doFinal (data);
 		}
 		catch (Exception e)
@@ -88,17 +90,26 @@ public class AES256Util
 	 */
 	public static byte [] encrypt (byte [] data, String base64Key)
 	{
+		SecretKeySpec secretKey = new SecretKeySpec (Base64.getDecoder ().decode (base64Key), "AES");
+		return encrypt (data, secretKey);
+	}
+
+	/**
+	 * performs AES256 encryption
+	 * @param data			data to be encrypted
+	 * @param key			AES256 encryption key
+	 * @return encrypted data
+	 */
+	public static byte [] encrypt (byte [] data, SecretKeySpec key)
+	{
 		try
 		{
-			if (encrypter == null)
-			{
-			    SecretKeySpec secretKey = new SecretKeySpec (Base64.getDecoder ().decode (base64Key), "AES");
-				byte [] iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-				IvParameterSpec ivspec = new IvParameterSpec (iv);
+			byte [] iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+			IvParameterSpec ivspec = new IvParameterSpec (iv);
 
-				encrypter = Cipher.getInstance ("AES/CBC/PKCS5Padding");
-				encrypter.init (Cipher.ENCRYPT_MODE, secretKey, ivspec);
-			}
+			Cipher encrypter = Cipher.getInstance ("AES/CBC/PKCS5Padding");
+			encrypter.init (Cipher.ENCRYPT_MODE, key, ivspec);
+
 			return encrypter.doFinal (data);
 		}
 		catch (Exception e)
@@ -106,6 +117,16 @@ public class AES256Util
 			System.out.println ("Error while encrypting: " + e.toString ());
 		}
 		return null;
+	}
+	
+	/**
+	 * create an AES256 key based on a user byte sequence
+	 * @param sequence the byte sequence used to build the key
+	 * @return the generated key
+	 */
+	public static SecretKeySpec createKey (byte [] sequence)
+	{
+	    return new SecretKeySpec (sequence, "AES");
 	}
 	
 	/**

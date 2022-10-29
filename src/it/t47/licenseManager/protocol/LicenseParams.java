@@ -26,6 +26,7 @@
 package it.t47.licenseManager.protocol;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Object returned by the LicenseChecker object
@@ -37,6 +38,7 @@ public class LicenseParams extends HashMap <String, Object>
 	private static final long serialVersionUID = 1L;
 
 	private String classDecryptionKey;
+	private Map <String, Class <?>> classMap = new HashMap <String, Class <?>> ();
 
 	public String getClassDecryptionKey ()
 	{
@@ -46,5 +48,10 @@ public class LicenseParams extends HashMap <String, Object>
 	public void setClassDecryptionKey (String classDecryptionKey)
 	{
 		this.classDecryptionKey = classDecryptionKey;
+	}
+
+	public Map <String, Class <?>> getClassMap ()
+	{
+		return classMap;
 	}
 }
