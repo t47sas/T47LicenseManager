@@ -44,7 +44,7 @@ Basically, protocol phases are
 3) the licensing server evaluates UUID, machine ID and bytecode ID and (eventually) sends back license properties (expiration...), the second half of the decryption key of the ECDK and the so encrypted ECDK itself. Server response is encrypted via its private key
 4) the licensed server decrypts ECDK and uses it to decript the encrypted classes and finally can use them: if the license parameteres are not verified, no decryption key is provided and encrypted classes cannot be used.
 
-The project is based mainly on it.t47.licenseManager.protocol.LicenseCheckProtocol that implement the base protocol for both licensed software & licensing server.
+The project is based mainly on it.t47.licenseManager.protocol.LicenseCheckProtocol class that implements the base protocol for both licensed software & licensing server.
 
 Basic usage:
 Project classes provide services for both licensed server (the one whom license should be verified) and licensing server (the one that should verify the provided license params and decide if a license is valid or not).
